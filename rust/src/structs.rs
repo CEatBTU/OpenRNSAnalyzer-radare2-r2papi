@@ -159,6 +159,8 @@ pub enum LSymbolType {
     Obj,
     Func,
     Section,
+    Sect,
+    Spcl,
     File,
     Common,
     Loos,

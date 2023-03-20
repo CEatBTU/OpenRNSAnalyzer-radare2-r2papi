@@ -7,12 +7,14 @@ use serde_json::{Error, from_str};
 impl R2Api for R2 {
     fn analyze(&mut self) {
         self.send("aaa");
+        // self.send("aa");
         self.flush();
     }
 
     fn init(&mut self) {
         self.send("e asm.esil = true");
         self.send("e scr.color = false");
+        self.send("e anal.hasnext=true");
         self.analyze();
     }
 

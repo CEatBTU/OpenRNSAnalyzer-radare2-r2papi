@@ -14,7 +14,9 @@ impl R2Api for R2 {
     fn init(&mut self) {
         self.send("e asm.esil = true");
         self.send("e scr.color = false");
-        self.send("e anal.hasnext=true");
+        self.send("e anal.hasnext = true");
+        self.send("e io.cache.read = true");
+        // self.send("e bin.cache = true");
         self.analyze();
     }
 

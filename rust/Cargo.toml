@@ -27,9 +27,7 @@ clippy = { version = "*", optional = true }
 serde = "*"
 serde_json = "*"
 serde_derive = "*"
-
-[dependencies.r2pipe]
-git = "https://github.com/radareorg/r2pipe.rs"
+r2pipe = "0.7.0"
 
 [[bin]]
 name = "api_example"

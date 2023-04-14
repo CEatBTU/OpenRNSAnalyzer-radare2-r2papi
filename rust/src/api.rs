@@ -12,13 +12,13 @@ impl R2Api for R2 {
         Ok(())
     }
 
-    fn init(&mut self) {
+    fn init(&mut self) -> Result<(), Error> {
         self.send("e asm.esil = true");
         self.send("e scr.color = false");
         self.send("e anal.hasnext = true");
         self.send("e io.cache.read = true");
         // self.send("e bin.cache = true");
-        self.analyze();
+        self.analyze()
     }
 
     fn function<T: AsRef<str>>(&mut self, func: T) -> Result<LFunctionInfo, Error> {

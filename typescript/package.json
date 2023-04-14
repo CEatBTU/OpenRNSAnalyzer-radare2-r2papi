@@ -1,16 +1,56 @@
 {
-  "name": "r2pipe-api-ts",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "dependencies": {
+  "name": "r2papi",
+  "version": "0.0.23",
+  "description": "r2api on top of r2pipe for typescript and js",
+  "__dependencies": {
     "r2pipe": "^2.6.0",
     "r2pipe-promise": "^1.2.1"
   },
-  "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "author": "",
-  "license": "ISC"
+  "homepage": "http://www.radare.org",
+  "bugs": {
+    "url": "https://github.com/radareorg/radare2-r2pipe/issues"
+  },
+  "devDependencies": {
+    "eslint": "*",
+    "typedoc": "^0.23.23"
+  },
+  "scripts": {
+    "build": "tsc -m node16 --target es2020 --declaration index.ts esil.ts shell.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "doc": "typedoc index.ts shell.ts esil.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/radareorg/radare2-r2papi"
+  },
+  "keywords": [
+    "radare",
+    "radare2",
+    "r2",
+    "reversing",
+    "disassembler",
+    "hexadecimal",
+    "editor",
+    "exploit",
+    "exploiting"
+  ],
+  "files": [
+    "README.md",
+    "esil.js",
+    "esil.ts",
+    "esil.d.ts",
+    "shell.js",
+    "shell.ts",
+    "shell.d.ts",
+    "index.js",
+    "index.ts",
+    "index.d.ts"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "r2pipe": "^2.8.0",
+    "typedoc": "^0.23.23",
+    "typescript": "*"
+  }
 }

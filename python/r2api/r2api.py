@@ -54,6 +54,26 @@ class Function(R2Base):
         """
         self._exec("afn %s %s" % (name, self.offset))
 
+    def graphImg(self, path=""):
+        """
+        .. todo::
+
+            Return Graph object (does not exist yet), that should have a image
+            method as there are more stuff that can be done with graphs?
+
+        Save the function graph as a GIF image. By default, it's saved in
+        ``{functionname}-graph.gif``
+
+        Args:
+            path (str, optional):
+                Path to store the image (including filename).
+        """
+        path = '%s-graph.gif' % self.name if path=="" else path
+        self._exec("e asm.comments=0")
+        self._exec("e asm.var=0")
+        self._exec("e asm.flags=0")
+        self._exec("agfw %s @ %s" % (path, self.offset))
+
     @property
     def name(self):
         """
@@ -71,12 +91,20 @@ class R2Api(R2Base):
     """Main class in ``r2pipe-api``, it contains all the methods and objects
     used.
 
+    A ``with`` statement can be used to make sure that the radare2 process is
+    closed.
+
+    .. code-block:: python
+
+        with R2Api('/bin/ls') as r:
+            r.print.hexdump()
+
     Attributes:
         print (:class:`r2pipe.print.Print`): Used only in Python3.
             All kind of things related with the print command in ``radare2``,
             this includes from getting an hexdump to get the dissasembly of a
             function.
-        _print (:class:`r2pipe.print.Print`): Used only in Python2 because
+        print2 (:class:`r2pipe.print.Print`): Used only in Python2 because
             ``print`` is a reserved keyword. see the previous attribute for
             further description.
         write (:class:`r2pipe.write.Write`): Write related operations, write
@@ -105,10 +133,13 @@ class R2Api(R2Base):
         self.debugger = Debugger(r2)
 
         # Using 'print' in python2 raises a syntax error if print function
-        # is not imported, _print can be used as an alternative.
+        # is not imported, print2 can be used as an alternative.
         if PYTHON_VERSION == 2:
-            self._print = Print(r2)
-        self.print = Print(r2)
+            self.print2 = Print(r2)
+        else:
+            self.print = Print(r2)
+            # Make code compatible
+            self.print2 = self.print
 
         self.write = Write(r2)
         self.config = Config(r2)
@@ -149,34 +180,31 @@ class R2Api(R2Base):
         files = self._exec("oj", json=True)
         return [File(self.r2, f["fd"]) for f in files]
 
-    def functionAt(self, at):
-        """Get the offset of a function name.
+    def function(self):
+        """Get the function at the current or temporary seek, if it exists.
 
-        Args:
-            at (str): Function name.
-        Returns:
-            int: offset of the function.
-        """
-        res = self._exec("afo %s" % at)
-        if res == "":
-            return None
-        return int(res, 16)
+        Example:
 
-    def currentFunction(self):
-        """Get the offset of the function containing the current seek.
+        .. code-block:: python
+
+            with R2Api('bin') as r:
+                r.analyzeAll()
+                func = r.at(0x100).function()
+                print(func.name)
+                func = r.at('flag').function()
+                print(func.offset)
 
         .. todo::
 
-            Check if this is really accurate.
+            Raise exception instead of returning None when the function does not
+            exist?
 
         Returns:
-            int: Offset of the function at the current seek.
+            :class:`r2api.r2api.Function`: Function found or None.
         """
-        at = "$$"
-        if self._tmp_off != "":
-            at = self._tmp_off.split()[1]
+        function_name = self._exec("afn. %s" % self._tmp_off)
         self._tmp_off = ""
-        return self.functionAt(at)
+        return self.functionByName(function_name)
 
     def functions(self):
         """
@@ -191,30 +219,22 @@ class R2Api(R2Base):
         res = self._exec("aflj", json=True)
         return [Function(self.r2, f["offset"]) for f in res] if res else []
 
-    def analyzeFunction(self):
-        res = self._exec("af %s|" % (self._tmp_off))
-        self._tmp_off = ""
-        return res
-
-    def disasmFunction(self):
-        res = self._exec("pdr %s|" % (self._tmp_off))
-        self._tmp_off = ""
-        return res
-
     def functionByName(self, name):
         """
-        .. todo::
-
-            Instead of returning a list return a value or None
-
         Args:
             name (str): Name of the target function.
         Returns:
-            list: List with the :class:`r2api.r2api.Function` object, or empty
-            list if the function was not foud.
+            :class:`r2api.r2api.Function`: Function or None.
         """
         # Use list for python3 compatibility
-        return list(filter(lambda x: x.name == name, self.functions()))
+        res = list(filter(lambda x: x.name == name, self.functions()))
+        if len(res) == 0:
+            return None
+        elif len(res) == 1:
+            return res[0]
+        else:
+            # TODO: Is this possible?
+            raise ValueError("One name returned more than one function")
 
     def read(self, n):
         """Get ``n`` bytes as a binary string from the current offset.
@@ -247,6 +267,8 @@ class R2Api(R2Base):
         else:
             read_len = 1
             at_addr = k
+        if PYTHON_VERSION == 2:
+            return self.print2.at(at_addr).bytes(read_len)
         return self.print.at(at_addr).bytes(read_len)
 
     def __setitem__(self, k, v):
